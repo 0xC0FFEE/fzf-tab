@@ -136,6 +136,15 @@ builtin unalias -m '[^+]*'
   local choice choices _ftb_curcontext continuous_trigger print_query accept_line bs=$'\2' nul=$'\0'
   local ret=0
 
+  # zsh-autosuggestions runs completion in a background pty via this widget.
+  # In that path we should not open fzf-tab UI; only run plain completion.
+  if [[ $WIDGET == autosuggest-capture-completion ]]; then
+    (( $+builtins[fzf-tab-compcap-generate] )) && fzf-tab-compcap-generate -i
+    COLUMNS=500 _ftb__main_complete "$@" || ret=$?
+    (( $+builtins[fzf-tab-compcap-generate] )) && fzf-tab-compcap-generate -o
+    return $ret
+  fi
+
   # must run with user options; don't move `emulate -L zsh` above this line
   (( $+builtins[fzf-tab-compcap-generate] )) && fzf-tab-compcap-generate -i
   COLUMNS=500 _ftb__main_complete "$@" || ret=$?
